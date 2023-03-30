@@ -1,0 +1,16 @@
+version: '3.3'
+
+#CREATE DATABASE dZendesk COLLATE Cyrillic_General_CI_AS;
+services:
+  dZendesk-db:
+    image: mcr.microsoft.com/mssql/server
+    restart: always
+    ports:
+      - '1433:1433'
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: FJVcBFG39Kt5fctgo6fao
+    volumes:
+      - dZendeskAdapter:/var/opt/mssql
+volumes:
+  dZendeskAdapter: { }
