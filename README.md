@@ -5,7 +5,7 @@ $ npm install
 $ npm run start:dev
 ```
 
-перейти в за писиланням:</br>
+перейти за писиланням:</br>
 http://localhost:3000/get_data_1</br>
 
  очікується:</br>
