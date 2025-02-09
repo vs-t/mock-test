@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
 import { HttpService } from './token-service/http.service';
-import { TokenServices } from './token-service';
-import { FirstTokenService } from './token-service/first-token-service';
-import { SecondTokenService } from './token-service/second-token-service';
 import { IntegrationToken } from './token-service/integration-token';
+import { FirstServices } from './token-service';
+import { SecondServices } from './token-service/second-service';
 
 @Module({
   imports: [],
-  providers:[HttpService, IntegrationToken, TokenServices, FirstTokenService, SecondTokenService],
-  exports:[TokenServices]
+  providers: [HttpService, IntegrationToken, FirstServices, SecondServices],
+  exports: [FirstServices, SecondServices, HttpService],
 })
 export class OAuthIntegrationModule {}

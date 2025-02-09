@@ -8,8 +8,7 @@ import { HttpService } from './http.service';
 export class IntegrationToken implements OnModuleInit {
   private readonly logger = new Logger(IntegrationToken.name);
   private tokenPromise: Promise<IdentityToken> | null = null;
-  private token = '';
-  private tokenDate: number;
+  private tokenDate: number = 0;
   private integrationName: IntegrationType;
   private url: string;
   private client_id: string;
@@ -20,18 +19,18 @@ export class IntegrationToken implements OnModuleInit {
   constructor(private readonly httpService: HttpService) {}
 
   onModuleInit() {
-    console.log(`IntegrationToken] has been initialized, integrationName: ${this.integrationName}`);
+    console.log(
+      `IntegrationToken] has been initialized, integrationName: ${this.integrationName}`,
+    );
   }
 
   initSate(
-    integrationName: IntegrationType,
     url: string,
     client_id: string,
     client_secret: string,
     grant_type: string,
-    scope?: string
+    scope?: string,
   ) {
-    this.integrationName = integrationName;
     this.url = url;
     this.client_id = client_id;
     this.client_secret = client_secret;
@@ -45,15 +44,19 @@ export class IntegrationToken implements OnModuleInit {
     }
 
     const { expires_in } = await this.tokenPromise;
+    const expired = Date.now() > this.tokenDate + expires_in * 1000;
 
-    return Date.now() > this.tokenDate + expires_in * 1000;
+    if (expired) {
+      this.tokenPromise = null;
+    }
+    return expired;
   }
 
   private async fetchToken(): Promise<IdentityToken> {
     const params: ParsedUrlQueryInput = {
       client_id: this.client_id,
       client_secret: this.client_secret,
-      grant_type: this.grant_type
+      grant_type: this.grant_type,
     };
 
     if (this.scope) {
@@ -64,42 +67,38 @@ export class IntegrationToken implements OnModuleInit {
       url: this.url,
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      data: querystring.stringify(params)
+      data: querystring.stringify(params),
     });
   }
 
-  public async getToken(isSilence = false, count = 0): Promise<string> {
+  public async getTokenPromise(
+    isSilence = false,
+    count = 0,
+  ): Promise<IdentityToken> {
     if (isSilence || (await this.isExpired())) {
       try {
-        console.log('[IntegrationToken].getToken start');
-        this.tokenPromise = this.fetchToken().then((r) => {
-          const { access_token, token_type, count } = r;
-          this.tokenDate = Date.now();
-          this.token = `${token_type} ${access_token}`;
-          console.log('count: ', count);
-
-          return r;
-        });
-        const { access_token, token_type } = await this.tokenPromise;
-
-        if (typeof access_token !== 'string' || typeof token_type !== 'string') {
-          this.tokenPromise = null;
-          throw new Error(`access_token '${access_token}' or token_type '${token_type}' is invalid`);
+        if (this.tokenPromise) {
+          return this.tokenPromise;
         }
+        console.log('[IntegrationToken].getToken start');
+        this.tokenPromise = this.fetchToken().then((identityToken) => {
+          this.tokenDate = Date.now();
+          return identityToken;
+        });
+        return this.tokenPromise;
       } catch (error) {
-        this.logger.error(`failed request of getToken for ${this.integrationName}`);
         this.logger.error(`getToken, message: ${error.message}`);
 
         if (count < 3) {
-          return this.getToken(isSilence, count + 1);
+          return this.getTokenPromise(isSilence, count + 1);
         }
 
         throw error;
       }
     }
 
-    return this.token;
+    return this.tokenPromise;
   }
 }
