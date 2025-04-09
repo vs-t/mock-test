@@ -1,7 +1,8 @@
 import {
   Body,
   Controller,
-  Get, Param,
+  Get,
+  Param,
   Post,
   Query,
   Req,
@@ -14,7 +15,10 @@ import { IntegrateService } from './integrate.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService, private readonly integrateService: IntegrateService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly integrateService: IntegrateService,
+  ) {}
 
   @Post()
   async randomAnswer(@Body() body: any): Promise<any> {

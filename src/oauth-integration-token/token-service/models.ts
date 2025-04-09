@@ -10,8 +10,8 @@ export interface IdentityParams {
   scope?: string;
 }
 export interface Configuration {
-  firstTokenService: IdentityParams,
-  secondTokenService: IdentityParams,
+  firstTokenService: IdentityParams;
+  secondTokenService: IdentityParams;
 }
 export interface IdentityToken {
   access_token: string;
